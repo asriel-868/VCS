@@ -1,2 +1,2 @@
 # VCS
-Read the design doc given at gitlet/gitlet-design.md
+Read the design doc given at Gitlet/gitlet-design.md
