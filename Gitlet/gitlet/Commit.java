@@ -7,23 +7,15 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
 import java.io.File;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
  *
- *  @author TODO
+ *
+ *  @author Rishikesh S
  */
 public class Commit implements Serializable {
-    /**
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
-     */
 
     /** Timestamp of the commit */
     private String timestamp;
@@ -35,10 +27,11 @@ public class Commit implements Serializable {
     private String parent;
 
     /** The blobs referred by this commit */
-    private Set<String> referenced_blobs;
+    private HashMap<String, String> referenced_blobs;
+
 
     /** Constructor */
-    public Commit (String message, String parent) {
+    public Commit (String message, String parent, HashMap<String, String> tracked_files) {
 
         this.message = message;
         this.parent = parent;
@@ -48,15 +41,18 @@ public class Commit implements Serializable {
             LocalDateTime epoch = LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0, 0);
             DateTimeFormatter formattedEpoch = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             this.timestamp = epoch.format(formattedEpoch);
+            /* Initial commit does not track any blobs */
+            this.referenced_blobs = new HashMap<>();
         }
         else {
             LocalDateTime currentTime = LocalDateTime.now();
             DateTimeFormatter formattedCurrentTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             this.timestamp = currentTime.format(formattedCurrentTime);
+            /* TODO :  Just for the time being............. */
+            this.referenced_blobs = tracked_files;
         }
 
-        /* TODO :  Just for the time being............. */
-        this.referenced_blobs = new HashSet<>();
+
     }
 
     /** Getter methods for the instance variables */
@@ -72,10 +68,10 @@ public class Commit implements Serializable {
         return this.parent;
     }
 
-    /** Saves the Commit object to disk */
-    public void saveCommit () {
-        String name = Utils.sha1(this.message, this.timestamp, this.parent, this.referenced_blobs);
-        File commit_file = Utils.join(Repository.COMMIT_DIR, name);
+    /* Saves the Commit object to disk and returns the Sha1 Hash of the saved commit obj */
+    public String saveCommit () {
+        String commit_hash = this.getHash();
+        File commit_file = Utils.join(Repository.COMMIT_DIR, commit_hash);
         try {
             commit_file.createNewFile();
         } catch (IOException e) {
@@ -83,6 +79,26 @@ public class Commit implements Serializable {
             e.printStackTrace();
         }
         Utils.writeObject(commit_file, this);
+        return commit_hash;
     }
 
+    /* Returns the Sha1 hash of the commit object */
+    public String getHash () {
+        byte[] serialized_obj = Utils.serialize(this);
+        return Utils.sha1(serialized_obj);
+    }
+
+    /* Returns the hash of the tracked file */
+    public String trackedFileHash (String file_name) {
+        return this.referenced_blobs.get(file_name);
+    }
+    /* Returns true if the given file is tracked by this commit */
+    public boolean isTracking (String file_name) {
+        return this.referenced_blobs.containsValue(file_name);
+    }
+
+    /* Returns the tracked files */
+    public HashMap<String, String> getReferencedBlobs () {
+        return this.referenced_blobs;
+    }
 }

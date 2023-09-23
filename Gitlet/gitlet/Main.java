@@ -17,19 +17,49 @@ public class Main {
             System.exit(0);
         }
 
+        Repository repo = new Repository();
+
         String firstArg = args[0];
         switch(firstArg) {
-            /** Creates a new Mingit vcs in the current directory. Should abort with an error message
-             *  if there is already a Mingit VCS in the current directory. The newly created system will start with an
+            /** Creates a new Gitlet vcs in the current directory. Should abort with an error message
+             *  if there is already a Gitlet VCS in the current directory. The newly created system will start with an
              *  initial commit that has the message "initial commit" and a timestamp of Unix Epoch. The system will also
              *  start with a single branch named master.
              */
-            case "init":
-
-            case "add":
-                // TODO: handle the `add [filename]` command
+            case "init": {
+                if (validateCommand(1, args)) {
+                    repo.init();
+                }
                 break;
-            // TODO: FILL THE REST IN
+            }
+            /** Adds the given file to the staging area. Staging an already staged file overwrites the previous entry
+             *  in the staging area. If the current version of the file is identical to the version in the current
+             *  commit, and remove it from the staging area if it is already there.
+             */
+            case "add": {
+                if (validateCommand(2, args)) {
+                    repo.add(args[1]);
+                }
+                break;
+            }
+            /** Creates a new commit by saving a snapshot of the tracked files in the current commit and
+             * staging area.
+             */
+            case "commit": {
+                if (validateCommand(2, args)) {
+                    repo.commit(args[1]);
+                }
+                break;
+            }
         }
+        System.exit(0);
+    }
+    /** Function that validates the number of arguments passed equals the required number */
+    public static boolean validateCommand(int length, String[] input) {
+        if (input.length == length) {
+            return true;
+        }
+        System.out.println("Incorrect Operands");
+        return false;
     }
 }
