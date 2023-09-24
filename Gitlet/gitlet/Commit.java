@@ -1,7 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -48,7 +46,6 @@ public class Commit implements Serializable {
             LocalDateTime currentTime = LocalDateTime.now();
             DateTimeFormatter formattedCurrentTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             this.timestamp = currentTime.format(formattedCurrentTime);
-            /* TODO :  Just for the time being............. */
             this.referenced_blobs = tracked_files;
         }
 
@@ -68,7 +65,7 @@ public class Commit implements Serializable {
         return this.parent;
     }
 
-    /* Saves the Commit object to disk and returns the Sha1 Hash of the saved commit obj */
+    /** Saves the Commit object to disk and returns the Sha1 Hash of the saved commit obj */
     public String saveCommit () {
         String commit_hash = this.getHash();
         File commit_file = Utils.join(Repository.COMMIT_DIR, commit_hash);
@@ -82,23 +79,33 @@ public class Commit implements Serializable {
         return commit_hash;
     }
 
-    /* Returns the Sha1 hash of the commit object */
+    /** Returns the Sha1 hash of the commit object */
     public String getHash () {
         byte[] serialized_obj = Utils.serialize(this);
         return Utils.sha1(serialized_obj);
     }
 
-    /* Returns the hash of the tracked file */
+    /** Returns the hash of the tracked file */
     public String trackedFileHash (String file_name) {
         return this.referenced_blobs.get(file_name);
     }
-    /* Returns true if the given file is tracked by this commit */
+    /** Returns true if the given file is tracked by this commit */
     public boolean isTracking (String file_name) {
-        return this.referenced_blobs.containsValue(file_name);
+        return this.referenced_blobs.containsKey(file_name);
     }
 
-    /* Returns the tracked files */
+    /** Returns the tracked files */
     public HashMap<String, String> getReferencedBlobs () {
         return this.referenced_blobs;
+    }
+
+    /** Adds a new blob */
+    public void addBlob (String key, String value) {
+        this.referenced_blobs.put(key, value);
+    }
+
+    /** removes a tracked blob */
+    public void removeBlob (String key) {
+        this.referenced_blobs.remove(key);
     }
 }

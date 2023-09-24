@@ -9,16 +9,30 @@ import java.util.HashMap;
  */
 public class Branch implements Serializable {
 
-    /* HashMap which stores all the branches */
+    /** HashMap which stores all the branches */
     private HashMap<String, String> all_branches;
+    /** Stores the current branch in the repository */
+    private String current_branch;
 
-    /* Constructor */
+    /** Constructor */
     public Branch() {
         this.all_branches = new HashMap<>();
+        this.current_branch = null;
     }
 
-    /* Insert a newly created branch and its pointer OR update the pointer of an existing branch */
-    public void insert (String key, String value) {
+
+    /** Add a newly created branch and its pointer OR update the pointer of an existing branch */
+    public void addBranch (String key, String value) {
         this.all_branches.put(key, value);
+    }
+
+    /** Getter method for current_branch */
+    public String getCurrentBranch () {
+        return this.current_branch;
+    }
+
+    /** Setter method for current_branch */
+    public void setCurrentBranch (String name) {
+        this.current_branch = name;
     }
 }

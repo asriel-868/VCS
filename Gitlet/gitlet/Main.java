@@ -1,14 +1,16 @@
 package gitlet;
 
-import java.io.File;
 
-/** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+/**
+ * Driver class for Gitlet, a subset of the Git version-control system.
+ *
+ * @author Rishikesh S
  */
 public class Main {
 
-    /** Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ... 
+    /**
+     * Usage: java gitlet.Main ARGS, where ARGS contains
+     * <COMMAND> <OPERAND1> <OPERAND2> ...
      */
     public static void main(String[] args) {
         /* When arguments are empty */
@@ -20,7 +22,7 @@ public class Main {
         Repository repo = new Repository();
 
         String firstArg = args[0];
-        switch(firstArg) {
+        switch (firstArg) {
             /** Creates a new Gitlet vcs in the current directory. Should abort with an error message
              *  if there is already a Gitlet VCS in the current directory. The newly created system will start with an
              *  initial commit that has the message "initial commit" and a timestamp of Unix Epoch. The system will also
@@ -37,7 +39,7 @@ public class Main {
              *  commit, and remove it from the staging area if it is already there.
              */
             case "add": {
-                if (validateCommand(2, args)) {
+                if (repo.checkInitialized() && validateCommand(2, args)) {
                     repo.add(args[1]);
                 }
                 break;
@@ -46,15 +48,35 @@ public class Main {
              * staging area.
              */
             case "commit": {
-                if (validateCommand(2, args)) {
+                if (repo.checkInitialized() && validateCommand(2, args)) {
+                    if (args[1].trim().isEmpty()) {
+                        System.out.println("Please enter a commit message");
+                        break;
+                    }
                     repo.commit(args[1]);
                 }
                 break;
             }
+            /** Unstages the file if it currently staged. If the file is tracked in the
+             *  current commit, stages it for removal and removes the file from working
+             *  directory. (DOES NOT REMOVE THE FILE FROM CWD UNLESSS TRACKED BY CURRENT COMMIT)
+             */
+            case "rm": {
+                if (repo.checkInitialized() && validateCommand(2, args)) {
+                    repo.rm(args[1]);
+                }
+            }
+            /** To be executed when a wrong command is entered */
+            default: {
+                System.out.println("No command with that name exists.");
+            }
         }
         System.exit(0);
     }
-    /** Function that validates the number of arguments passed equals the required number */
+
+    /**
+     * Function that validates the number of arguments passed equals the required number
+     */
     public static boolean validateCommand(int length, String[] input) {
         if (input.length == length) {
             return true;

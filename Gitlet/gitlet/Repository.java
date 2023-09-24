@@ -2,9 +2,10 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.HashMap;
-
+import java.util.HashSet;
 
 /** Represents a gitlet repository.
 
@@ -22,7 +23,7 @@ public class Repository {
     /** Directory which stores all the blobs */
     public static final File BLOBS_DIR = Utils.join(GITLET_DIR, "blobs");
 
-    /** Directory which stores the branch pointers */
+    /** Directory which stores the branch information */
     public static final File BRANCH_DIR = Utils.join(GITLET_DIR, "branches");
 
     /** File which stores the HEAD pointer */
@@ -33,10 +34,13 @@ public class Repository {
 
 
     /** Directory where the staging area is stored */
-    public static final File STAGING_AREA = Utils.join(GITLET_DIR, "staging");
+    public static final File STAGING_AREA_DIR = Utils.join(GITLET_DIR, "staging");
 
     /** File where the staging area is stored --- named as index */
-    public static final File STAGING_AREA_FILE = Utils.join(STAGING_AREA, "index");
+    public static final File STAGING_AREA_FILE = Utils.join(STAGING_AREA_DIR, "index");
+
+    /** Directory where the staged files are stored */
+    public static final File STAGED_FILES_DIR = Utils.join(STAGING_AREA_DIR, "staged_files");
 
     /** Stores the branches and their current pointer locations */
     Branch branches;
@@ -48,7 +52,7 @@ public class Repository {
     public StagingArea staging_area;
 
 
-
+    /** Constructor */
     public Repository () {
         /* If the current directory already has a Gitlet version-control system, we load the previous state of the repository */
         if (GITLET_DIR.exists()) {
@@ -61,11 +65,11 @@ public class Repository {
             this.HEAD = null;
             this.staging_area = new StagingArea();
             this.branches = new Branch();
-            this.branches.insert("master", null);
+            this.branches.addBranch("master", null);
         }
     }
 
-    /* Function fot the init command */
+    /** Function fot the init command */
     public void init () {
         /* If a Gitlet VCS already exists in this directory, we print an error message and then exit */
         if (GITLET_DIR.exists()) {
@@ -78,7 +82,8 @@ public class Repository {
             COMMIT_DIR.mkdir();
             BLOBS_DIR.mkdir();
             BRANCH_DIR.mkdir();
-            STAGING_AREA.mkdir();
+            STAGING_AREA_DIR.mkdir();
+            STAGED_FILES_DIR.mkdir();
             try {
                 HEAD_POINTER_FILE.createNewFile();
             } catch (IOException e) {
@@ -97,15 +102,16 @@ public class Repository {
 
             /* Creating the initial commit */
             Commit initial_commit = new Commit("initial commit", null, this.staging_area.getStagedFiles());
-            /* Updates the HEAD and master branch pointer to point to the latest commit */
+            /* Updates the HEAD and master branch pointer to point to the latest commit. Makes master the current branch */
             this.HEAD = initial_commit.saveCommit();
-            this.branches.insert("master", this.HEAD);
+            this.branches.addBranch("master", this.HEAD);
+            this.branches.setCurrentBranch("master");
             /* Saving the repo state before exiting */
             this.saveRepoState();
         }
     }
 
-    /* Function for the add command. Takes the name of the file to be staged as the argument */
+    /** Function for the add command. Takes the name of the file to be staged as the argument */
     public void add (String file_name) {
         File given_file = Utils.join(CWD, file_name);
         /* Checking if the given file exists or not */
@@ -139,22 +145,69 @@ public class Repository {
         }
     }
 
-    /* Function for the commit command. Creates a new commit. Takes the message given by the user as the argument */
+    /** Function for the commit command. Creates a new commit. Takes the message given by the user as the argument */
     public void commit (String message) {
         /* Creates a new commit that tracks the same files as that by its parent */
         File current_commit_file = Utils.join(COMMIT_DIR, this.HEAD);
         Commit current_commit = Utils.readObject(current_commit_file, Commit.class);
         Commit new_commit = new Commit(message, this.HEAD, current_commit.getReferencedBlobs());
 
-        /* Adds all the staged files into the current commit */
+        /* Gets the current staged files and current staged for removal files */
         HashMap<String, String> current_staged = this.staging_area.getStagedFiles();
+        HashSet<String> current_staged_removal = this.staging_area.getRemovalStagedFiles();
+
+        /* Iterating through staged for removal files */
+        for (String entry : current_staged_removal) {
+            new_commit.removeBlob(entry);
+        }
+
+        /* If no files staged for addition */
+        if (current_staged.isEmpty()) {
+            System.out.println("No changes added to the commit.");
+            this.saveRepoState();
+        }
+        else {
+            /* Iterating through each file staged for addition */
+            for (Map.Entry<String, String> entry : current_staged.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                File blob_file = Utils.join(Repository.BLOBS_DIR, value);
+                Utils.writeContents(blob_file, Utils.readContentsAsString(Utils.join(Repository.STAGED_FILES_DIR, value)));
+                new_commit.addBlob(key, value);
+            }
+            /* Saving the created commit and updating the HEAD and current branch pointer */
+            this.HEAD = new_commit.saveCommit();
+            this.branches.addBranch(this.branches.getCurrentBranch(), this.HEAD);
+
+            /* Clearing the staging area */
+            this.staging_area.clearStagingArea();
+            this.saveRepoState();
+        }
     }
 
-    /* Saves the state of the repo */
+    /** Function for the rm command */
+    public void rm (String file_name) {
+        File f = Utils.join(Repository.CWD, file_name);
+        if (this.staging_area.isStaging(file_name)) {
+
+        }
+    }
+
+    /** Saves the state of the repo */
     public void saveRepoState () {
         Utils.writeContents(HEAD_POINTER_FILE, this.HEAD);
         Utils.writeObject(STAGING_AREA_FILE, this.staging_area);
         Utils.writeObject(BRANCH_OBJECT_FILE, this.branches);
     }
 
+    /** returns true if the current working directory is a Gitlet reository */
+    public boolean checkInitialized () {
+        if (Repository.GITLET_DIR.exists()) {
+            return true;
+        }
+        else {
+            System.out.println("Not in an initialized Gitlet directory");
+            return false;
+        }
+    }
 }
