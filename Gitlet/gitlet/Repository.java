@@ -188,8 +188,39 @@ public class Repository {
     /** Function for the rm command */
     public void rm (String file_name) {
         File f = Utils.join(Repository.CWD, file_name);
+        /* Unstaging the file */
         if (this.staging_area.isStaging(file_name)) {
+            this.staging_area.unStageFile(file_name);
+        }
+        Commit current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.HEAD), Commit.class);
+        /* Checking if the current version of given file is tracked by the current commit.
+        *  If so, then remove the file from CWD and stage it for removal */
+        if (current_commit.isTracking(file_name)) {
+            this.staging_area.stageForRemoval(file_name);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+        this.saveRepoState();
+    }
 
+    /** Functon for the log command */
+    public void log () {
+        Commit current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.HEAD), Commit.class);
+        String current_commit_hash = this.HEAD;
+        while (current_commit != null) {
+            System.out.println("===");
+            System.out.printf("commit %s\n", current_commit_hash);
+            System.out.printf("Date: %s\n", current_commit.getTimestamp());
+            System.out.println(current_commit.getMessage());
+
+            if (current_commit.getParent() == null) {
+                current_commit = null;
+            }
+            else {
+                current_commit_hash = current_commit.getParent();
+                current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, current_commit.getParent()), Commit.class);
+            }
         }
     }
 

@@ -2,9 +2,9 @@ package gitlet;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.io.File;
 
@@ -36,17 +36,25 @@ public class Commit implements Serializable {
 
         /* If the parent is null, that is, initial commit */
         if (parent == null) {
-            LocalDateTime epoch = LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0, 0);
-            DateTimeFormatter formattedEpoch = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            this.timestamp = epoch.format(formattedEpoch);
+            Date unix_epoch = new Date(0);
+            TimeZone timeZone = TimeZone.getTimeZone("GMT");
+            Formatter formatter = new Formatter();
+            formatter.format("%1$ta %1$tb %1$td %1$tT %1$tY %1$tZ", unix_epoch, timeZone);
+            String formatted_time = formatter.toString();
+            formatter.close();
+            this.timestamp = formatted_time;
             /* Initial commit does not track any blobs */
             this.referenced_blobs = new HashMap<>();
         }
         else {
-            LocalDateTime currentTime = LocalDateTime.now();
-            DateTimeFormatter formattedCurrentTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            this.timestamp = currentTime.format(formattedCurrentTime);
-            this.referenced_blobs = tracked_files;
+            Date current_date = new Date();
+            TimeZone timeZone = TimeZone.getTimeZone("GMT");
+            Formatter formatter = new Formatter();
+            formatter.format("%1$ta %1$tb %1$td %1$tT %1$tY %1$tZ", current_date, timeZone);
+            String formatted_time = formatter.toString();
+            formatter.close();
+            this.timestamp = formatted_time;
+            this.referenced_blobs = new HashMap<>();
         }
 
 

@@ -65,6 +65,16 @@ public class Main {
                 if (repo.checkInitialized() && validateCommand(2, args)) {
                     repo.rm(args[1]);
                 }
+                break;
+            }
+            /** Starting at the head commit, displays information about each commit going
+             *  backward until the initial commit. Consider the 1st parent in case of
+             */
+            case "log": {
+                if (repo.checkInitialized() && validateCommand(1, args)) {
+                    repo.log();
+                }
+                break;
             }
             /** To be executed when a wrong command is entered */
             default: {
