@@ -2,10 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 /** Represents a gitlet repository.
 
@@ -153,7 +150,7 @@ public class Repository {
         Commit new_commit = new Commit(message, this.HEAD, current_commit.getReferencedBlobs());
 
         /* Gets the current staged files and current staged for removal files */
-        HashMap<String, String> current_staged = this.staging_area.getStagedFiles();
+        TreeMap<String, String> current_staged = this.staging_area.getStagedFiles();
         HashSet<String> current_staged_removal = this.staging_area.getRemovalStagedFiles();
 
         /* Iterating through staged for removal files */
@@ -206,22 +203,84 @@ public class Repository {
 
     /** Functon for the log command */
     public void log () {
+        /* Reading the current commit, which is the one poiinted by HEAD */
         Commit current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.HEAD), Commit.class);
         String current_commit_hash = this.HEAD;
+        /* Looping through the parents and printing out the message. Loops until the
+         * initial commit.
+         */
         while (current_commit != null) {
             System.out.println("===");
             System.out.printf("commit %s\n", current_commit_hash);
             System.out.printf("Date: %s\n", current_commit.getTimestamp());
             System.out.println(current_commit.getMessage());
+            System.out.println();
 
+            /* checking if this is the initial commit. */
             if (current_commit.getParent() == null) {
                 current_commit = null;
             }
+            /* If not, updating the current_commit and current_commit_hash to be the values of
+             * their parents.
+             */
             else {
                 current_commit_hash = current_commit.getParent();
                 current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, current_commit.getParent()), Commit.class);
             }
         }
+    }
+
+    /** Function for global-log command */
+    public void globalLog () {
+        /* Getting the names of all the files in the COMMIT_DIR. Note that the names are
+         * the same as commit hashes.
+         */
+        List<String> file_list = Utils.plainFilenamesIn(COMMIT_DIR);
+        /* Looping through all the files/commits and printing out the messages */
+        for (String s : file_list) {
+            Commit current_commit = Utils.readObject(Utils.join(COMMIT_DIR, s), Commit.class);
+            System.out.println("===");
+            System.out.printf("commit %s\n", s);
+            System.out.printf("Date: %s\n", current_commit.getTimestamp());
+            System.out.println(current_commit.getMessage());
+            System.out.println();
+        }
+    }
+
+    /** Function for the find command */
+    public void find (String message) {
+        List<String> file_list = Utils.plainFilenamesIn(COMMIT_DIR);
+        for (String s : file_list) {
+            Commit current_commit = Utils.readObject(Utils.join(COMMIT_DIR, s), Commit.class);
+            if (Objects.equals(current_commit.getMessage(), message)) {
+                System.out.println(s);
+            }
+        }
+    }
+
+    /** Function for the status command */
+    public void status () {
+        /* Gets all the branches in sorted order */
+        Set<String> all_branches = this.branches.getAllBranches();
+        String current_branch = this.branches.getCurrentBranch();
+        /* Prints out all the branches */
+        System.out.println("=== Branches ===");
+        for (String s: all_branches) {
+            if (Objects.equals(s, current_branch)) {
+                System.out.println("*" + s);
+            }
+            else {
+                System.out.println(s);
+            }
+        }
+        System.out.println();
+        /* Gets all the files in staging area and prints them */
+        Set<String> staged_file_names = this.staging_area.getStagedFileNames();
+        System.out.println("=== Staged Files ===");
+        for (String s : staged_file_names) {
+            System.out.println(s);
+        }
+        System.out.println();
     }
 
     /** Saves the state of the repo */
@@ -231,7 +290,7 @@ public class Repository {
         Utils.writeObject(BRANCH_OBJECT_FILE, this.branches);
     }
 
-    /** returns true if the current working directory is a Gitlet reository */
+    /** returns true if the current working directory is a Gitlet repository */
     public boolean checkInitialized () {
         if (Repository.GITLET_DIR.exists()) {
             return true;

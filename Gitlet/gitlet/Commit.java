@@ -3,9 +3,8 @@ package gitlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.TimeZone;
 import java.util.Formatter;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.io.File;
 
 /** Represents a gitlet commit object.
@@ -25,11 +24,11 @@ public class Commit implements Serializable {
     private String parent;
 
     /** The blobs referred by this commit */
-    private HashMap<String, String> referenced_blobs;
+    private TreeMap<String, String> referenced_blobs;
 
 
     /** Constructor */
-    public Commit (String message, String parent, HashMap<String, String> tracked_files) {
+    public Commit (String message, String parent, TreeMap<String, String> tracked_files) {
 
         this.message = message;
         this.parent = parent;
@@ -37,27 +36,23 @@ public class Commit implements Serializable {
         /* If the parent is null, that is, initial commit */
         if (parent == null) {
             Date unix_epoch = new Date(0);
-            TimeZone timeZone = TimeZone.getTimeZone("GMT");
             Formatter formatter = new Formatter();
-            formatter.format("%1$ta %1$tb %1$td %1$tT %1$tY %1$tZ", unix_epoch, timeZone);
+            formatter.format("%1$ta %1$tb %1$td %1$tT %1$tY %1$tz", unix_epoch);
             String formatted_time = formatter.toString();
             formatter.close();
             this.timestamp = formatted_time;
             /* Initial commit does not track any blobs */
-            this.referenced_blobs = new HashMap<>();
+            this.referenced_blobs = new TreeMap<>();
         }
         else {
             Date current_date = new Date();
-            TimeZone timeZone = TimeZone.getTimeZone("GMT");
             Formatter formatter = new Formatter();
-            formatter.format("%1$ta %1$tb %1$td %1$tT %1$tY %1$tZ", current_date, timeZone);
+                formatter.format("%1$ta %1$tb %1$td %1$tT %1$tY %1$tz", current_date);
             String formatted_time = formatter.toString();
             formatter.close();
             this.timestamp = formatted_time;
-            this.referenced_blobs = new HashMap<>();
+            this.referenced_blobs = new TreeMap<>();
         }
-
-
     }
 
     /** Getter methods for the instance variables */
@@ -103,7 +98,7 @@ public class Commit implements Serializable {
     }
 
     /** Returns the tracked files */
-    public HashMap<String, String> getReferencedBlobs () {
+    public TreeMap<String, String> getReferencedBlobs () {
         return this.referenced_blobs;
     }
 
@@ -117,3 +112,5 @@ public class Commit implements Serializable {
         this.referenced_blobs.remove(key);
     }
 }
+
+

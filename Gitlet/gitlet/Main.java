@@ -23,7 +23,7 @@ public class Main {
 
         String firstArg = args[0];
         switch (firstArg) {
-            /** Creates a new Gitlet vcs in the current directory. Should abort with an error message
+            /*  Creates a new Gitlet vcs in the current directory. Should abort with an error message
              *  if there is already a Gitlet VCS in the current directory. The newly created system will start with an
              *  initial commit that has the message "initial commit" and a timestamp of Unix Epoch. The system will also
              *  start with a single branch named master.
@@ -34,7 +34,7 @@ public class Main {
                 }
                 break;
             }
-            /** Adds the given file to the staging area. Staging an already staged file overwrites the previous entry
+            /*  Adds the given file to the staging area. Staging an already staged file overwrites the previous entry
              *  in the staging area. If the current version of the file is identical to the version in the current
              *  commit, and remove it from the staging area if it is already there.
              */
@@ -44,7 +44,7 @@ public class Main {
                 }
                 break;
             }
-            /** Creates a new commit by saving a snapshot of the tracked files in the current commit and
+            /* Creates a new commit by saving a snapshot of the tracked files in the current commit and
              * staging area.
              */
             case "commit": {
@@ -57,7 +57,7 @@ public class Main {
                 }
                 break;
             }
-            /** Unstages the file if it currently staged. If the file is tracked in the
+            /*  Unstages the file if it currently staged. If the file is tracked in the
              *  current commit, stages it for removal and removes the file from working
              *  directory. (DOES NOT REMOVE THE FILE FROM CWD UNLESSS TRACKED BY CURRENT COMMIT)
              */
@@ -67,7 +67,7 @@ public class Main {
                 }
                 break;
             }
-            /** Starting at the head commit, displays information about each commit going
+            /*  Starting at the head commit, displays information about each commit going
              *  backward until the initial commit. Consider the 1st parent in case of
              */
             case "log": {
@@ -76,7 +76,35 @@ public class Main {
                 }
                 break;
             }
-            /** To be executed when a wrong command is entered */
+            /* Similar to log, but prints information about all the commits ever made. The
+             *  order of commits is not fixed
+             */
+            case "global-log": {
+                if (repo.checkInitialized() && validateCommand(1, args)) {
+                    repo.globalLog();
+                }
+                break;
+            }
+            /*  Prints out the ids of all commits that have the given commit message. If no
+             *  such commit exists, prints out an error.
+             */
+            case "find" : {
+                if (repo.checkInitialized() && validateCommand(2, args)) {
+                    repo.find(args[1]);
+                }
+                break;
+            }
+            /*  Prints out the current status of the repository. Shows all the branches, currently
+             *  staged files, removed files and modified files. Prints out the info in lexicographic
+             *  order.
+             */
+            case "status" : {
+                if (repo.checkInitialized() && validateCommand(1, args)) {
+                    repo.status();
+                }
+                break;
+            }
+            /* To be executed when a wrong command is entered */
             default: {
                 System.out.println("No command with that name exists.");
             }

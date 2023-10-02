@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeMap;
 
 /** Represents the staging area of the version control system
  *  Stores the staged files and their Sha1 hashes in a Hashmap
@@ -11,19 +13,19 @@ import java.util.HashSet;
  */
 public class StagingArea implements Serializable {
     /** Stores the staged files and their Sha1 hashes */
-    private HashMap<String, String> staged_files;
+    private TreeMap<String, String> staged_files;
 
     /** Stores the staged for removal files */
     private HashSet<String> removal_staged_files;
 
     /** Constructor */
     public StagingArea () {
-        this.staged_files = new HashMap<>();
+        this.staged_files = new TreeMap<>();
         this.removal_staged_files = new HashSet<>();
     }
 
     /** Getter method that returns all the currently staged files */
-    public HashMap<String, String> getStagedFiles() {
+    public TreeMap<String, String> getStagedFiles() {
         return this.staged_files;
     }
 
@@ -74,7 +76,9 @@ public class StagingArea implements Serializable {
          this.removal_staged_files.remove(file_name);
     }
 
-    /** Clears the staging area */
+    /** Clears the staging area. Removes the staged for addition files from
+     *  STAGED_FILE_DIR and also clears the staged for removal area.
+     */
     public void clearStagingArea () {
         this.removal_staged_files.clear();
         /* Iterating through all the staged files */
@@ -85,5 +89,12 @@ public class StagingArea implements Serializable {
             }
         }
         this.staged_files.clear();
+    }
+
+    /** Returns the name of all the currently staged files. The files are returned in
+     *  lexicographic order.
+     */
+    public Set<String> getStagedFileNames () {
+        return this.staged_files.keySet();
     }
 }
