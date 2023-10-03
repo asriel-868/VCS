@@ -2,8 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -12,25 +11,25 @@ import java.util.TreeMap;
  *  Is implemented as Serializable as the staging area should persist between multiple executions
  */
 public class StagingArea implements Serializable {
-    /** Stores the staged files and their Sha1 hashes */
+    /** Stores the staged files and their Sha1 hashes. Key is file name and value is their hash*/
     private TreeMap<String, String> staged_files;
 
     /** Stores the staged for removal files */
-    private HashSet<String> removal_staged_files;
+    private TreeSet<String> removal_staged_files;
 
     /** Constructor */
     public StagingArea () {
         this.staged_files = new TreeMap<>();
-        this.removal_staged_files = new HashSet<>();
+        this.removal_staged_files = new TreeSet<>();
     }
 
-    /** Getter method that returns all the currently staged files */
+    /** Getter method that returns all the currently staged (for addition) files */
     public TreeMap<String, String> getStagedFiles() {
         return this.staged_files;
     }
 
     /** Getter method that returns removal_staged_files */
-    public HashSet <String> getRemovalStagedFiles () {
+    public TreeSet <String> getRemovalStagedFiles () {
         return this.removal_staged_files;
     }
 
@@ -91,7 +90,7 @@ public class StagingArea implements Serializable {
         this.staged_files.clear();
     }
 
-    /** Returns the name of all the currently staged files. The files are returned in
+    /** Returns the name of all the currently staged (for addition) files. The files are returned in
      *  lexicographic order.
      */
     public Set<String> getStagedFileNames () {

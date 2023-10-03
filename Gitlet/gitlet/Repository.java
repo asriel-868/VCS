@@ -151,7 +151,7 @@ public class Repository {
 
         /* Gets the current staged files and current staged for removal files */
         TreeMap<String, String> current_staged = this.staging_area.getStagedFiles();
-        HashSet<String> current_staged_removal = this.staging_area.getRemovalStagedFiles();
+        TreeSet<String> current_staged_removal = this.staging_area.getRemovalStagedFiles();
 
         /* Iterating through staged for removal files */
         for (String entry : current_staged_removal) {
@@ -203,7 +203,7 @@ public class Repository {
 
     /** Functon for the log command */
     public void log () {
-        /* Reading the current commit, which is the one poiinted by HEAD */
+        /* Reading the current commit, which is the one pointed by HEAD */
         Commit current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.HEAD), Commit.class);
         String current_commit_hash = this.HEAD;
         /* Looping through the parents and printing out the message. Loops until the
@@ -228,6 +228,7 @@ public class Repository {
                 current_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, current_commit.getParent()), Commit.class);
             }
         }
+
     }
 
     /** Function for global-log command */
@@ -249,7 +250,9 @@ public class Repository {
 
     /** Function for the find command */
     public void find (String message) {
+        /* Returns all the file names in the specified  directory as a List */
         List<String> file_list = Utils.plainFilenamesIn(COMMIT_DIR);
+        /* Looping through each file in the directory */
         for (String s : file_list) {
             Commit current_commit = Utils.readObject(Utils.join(COMMIT_DIR, s), Commit.class);
             if (Objects.equals(current_commit.getMessage(), message)) {
@@ -263,7 +266,7 @@ public class Repository {
         /* Gets all the branches in sorted order */
         Set<String> all_branches = this.branches.getAllBranches();
         String current_branch = this.branches.getCurrentBranch();
-        /* Prints out all the branches */
+        /* Prints out all the branches in lexicographic order */
         System.out.println("=== Branches ===");
         for (String s: all_branches) {
             if (Objects.equals(s, current_branch)) {
@@ -274,13 +277,70 @@ public class Repository {
             }
         }
         System.out.println();
-        /* Gets all the files in staging area and prints them */
+        /* Gets all the files in staging area (for addition) and prints them in lexicographic order */
         Set<String> staged_file_names = this.staging_area.getStagedFileNames();
         System.out.println("=== Staged Files ===");
         for (String s : staged_file_names) {
             System.out.println(s);
         }
         System.out.println();
+        /* Gets all the files in staged for removal area and prints them in lexicographic order */
+        TreeSet<String> staged_for_removal_filenames = this.staging_area.getRemovalStagedFiles();
+        System.out.println("=== Removed files ===");
+        for (String s : staged_for_removal_filenames) {
+            System.out.println(s);
+        }
+        System.out.println();
+        /* Leaving these blank for now ... */
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println();
+        System.out.println("=== Untracked Files ===");
+        System.out.println();
+    }
+
+    /** Function for the checkout command */
+    public void checkout (String[] args) {
+        Set<String> all_branches = this.branches.getAllBranches();
+        /* If the argument length is 2, we have to check whether checking out for branch or a file
+           in HEAD commit.
+         */
+        if (args.length == 2) {
+            checkoutBranch(args[1]);
+        }
+        else if (args.length == 3) {
+            checkoutCommit(this.HEAD, args[2]);
+        }
+        else if (args.length == 4) {
+            checkoutCommit(args[1], args[3]);
+        }
+        this.saveRepoState();
+    }
+
+    /** Function which checks out the given file in the given commit */
+    private static void checkoutCommit (String commit, String filename) {
+        /* Gets the commit file */
+        File commit_file = Utils.join(Repository.COMMIT_DIR, commit);
+        /* Checks if the commit exists. If not, prints an error message */
+        if (commit_file.exists()) {
+            Commit current_commit = Utils.readObject(commit_file, Commit.class);
+            /* Checks if the commit tracks the given file. If not, prints an error */
+            if (current_commit.isTracking(filename)) {
+                File tracked_file = Utils.join(Repository.BLOBS_DIR, current_commit.trackedFileHash(filename));
+                String contents_tracked_file = Utils.readContentsAsString(tracked_file);
+                Utils.writeContents(Utils.join(Repository.CWD, filename), contents_tracked_file);
+            }
+            else {
+                System.out.println("File does not exist in that commit");
+            }
+        }
+        else {
+            System.out.println("No commit with that id exists");
+        }
+    }
+
+    /** Function which checks out to the given branch */
+    private static void checkoutBranch (String branch) {
+
     }
 
     /** Saves the state of the repo */

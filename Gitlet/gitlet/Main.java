@@ -88,7 +88,7 @@ public class Main {
             /*  Prints out the ids of all commits that have the given commit message. If no
              *  such commit exists, prints out an error.
              */
-            case "find" : {
+            case "find": {
                 if (repo.checkInitialized() && validateCommand(2, args)) {
                     repo.find(args[1]);
                 }
@@ -98,9 +98,22 @@ public class Main {
              *  staged files, removed files and modified files. Prints out the info in lexicographic
              *  order.
              */
-            case "status" : {
+            case "status": {
                 if (repo.checkInitialized() && validateCommand(1, args)) {
                     repo.status();
+                }
+                break;
+            }
+            /*    Checkouts the given file/branch. Three possible cases :
+             * 1. Filename is given as argument ---- Replaces the file with the one pointed to by HEAD commit
+             * 2. Commit id and file name is given as argument ---- Replaces the file with the one pointed to by
+             *    given commit.
+             * 3. Branch name is given as argument ---- Takes all the files in the given branch and puts them in
+             *    the working directory. Clears the staging area unless the given branch is the current branch.
+             */
+            case "checkout": {
+                if (repo.checkInitialized() && ( validateCommand(3, args) || validateCommand(2, args) || validateCommand(4, args))) {
+                    repo.checkout(args);
                 }
                 break;
             }

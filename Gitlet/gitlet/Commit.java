@@ -51,7 +51,7 @@ public class Commit implements Serializable {
             String formatted_time = formatter.toString();
             formatter.close();
             this.timestamp = formatted_time;
-            this.referenced_blobs = new TreeMap<>();
+            this.referenced_blobs = tracked_files;
         }
     }
 
