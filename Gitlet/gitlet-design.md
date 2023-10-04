@@ -95,8 +95,3 @@ Stores all the branches in a repository. We store it as a TreeMap where the key 
 and values is the commit hash of its latest commit. 
 * current branch :  
 Stores the current branch of the repo. We store it as a String. 
-
-## Algorithms
-
-## Persistence
-
