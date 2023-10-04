@@ -32,6 +32,9 @@ public class Main {
                 if (validateCommand(1, args)) {
                     repo.init();
                 }
+                else {
+                    System.out.println("Incorrect operands.");
+                }
                 break;
             }
             /*  Adds the given file to the staging area. Staging an already staged file overwrites the previous entry
@@ -41,6 +44,9 @@ public class Main {
             case "add": {
                 if (repo.checkInitialized() && validateCommand(2, args)) {
                     repo.add(args[1]);
+                }
+                else {
+                    System.out.println("Incorrect operands.");
                 }
                 break;
             }
@@ -55,6 +61,9 @@ public class Main {
                     }
                     repo.commit(args[1]);
                 }
+                else {
+                    System.out.println("Incorrect operands.");
+                }
                 break;
             }
             /*  Unstages the file if it currently staged. If the file is tracked in the
@@ -65,6 +74,9 @@ public class Main {
                 if (repo.checkInitialized() && validateCommand(2, args)) {
                     repo.rm(args[1]);
                 }
+                else {
+                    System.out.println("Incorrect operands.");
+                }
                 break;
             }
             /*  Starting at the head commit, displays information about each commit going
@@ -73,6 +85,9 @@ public class Main {
             case "log": {
                 if (repo.checkInitialized() && validateCommand(1, args)) {
                     repo.log();
+                }
+                else {
+                    System.out.println("Incorrect operands.");
                 }
                 break;
             }
@@ -83,6 +98,9 @@ public class Main {
                 if (repo.checkInitialized() && validateCommand(1, args)) {
                     repo.globalLog();
                 }
+                else {
+                    System.out.println("Incorrect operands.");
+                }
                 break;
             }
             /*  Prints out the ids of all commits that have the given commit message. If no
@@ -91,6 +109,9 @@ public class Main {
             case "find": {
                 if (repo.checkInitialized() && validateCommand(2, args)) {
                     repo.find(args[1]);
+                }
+                else {
+                    System.out.println("Incorrect operands.");
                 }
                 break;
             }
@@ -101,6 +122,9 @@ public class Main {
             case "status": {
                 if (repo.checkInitialized() && validateCommand(1, args)) {
                     repo.status();
+                }
+                else {
+                    System.out.println("Incorrect operands.");
                 }
                 break;
             }
@@ -114,6 +138,9 @@ public class Main {
             case "checkout": {
                 if (repo.checkInitialized() && ( validateCommand(3, args) || validateCommand(2, args) || validateCommand(4, args))) {
                     repo.checkout(args);
+                }
+                else {
+                    System.out.println("Incorrect operands.");
                 }
                 break;
             }
@@ -129,10 +156,6 @@ public class Main {
      * Function that validates the number of arguments passed equals the required number
      */
     public static boolean validateCommand(int length, String[] input) {
-        if (input.length == length) {
-            return true;
-        }
-        System.out.println("Incorrect Operands");
-        return false;
+        return input.length == length;
     }
 }

@@ -305,19 +305,19 @@ public class Repository {
            in HEAD commit.
          */
         if (args.length == 2) {
-            checkoutBranch(args[1]);
+            this.checkoutBranch(args[1]);
         }
         else if (args.length == 3) {
-            checkoutCommit(this.HEAD, args[2]);
+            this.checkoutCommit(this.HEAD, args[2]);
         }
         else if (args.length == 4) {
-            checkoutCommit(args[1], args[3]);
+            this.checkoutCommit(args[1], args[3]);
         }
         this.saveRepoState();
     }
 
     /** Function which checks out the given file in the given commit */
-    private static void checkoutCommit (String commit, String filename) {
+    private  void checkoutCommit (String commit, String filename) {
         /* Gets the commit file */
         File commit_file = Utils.join(Repository.COMMIT_DIR, commit);
         /* Checks if the commit exists. If not, prints an error message */
@@ -339,7 +339,19 @@ public class Repository {
     }
 
     /** Function which checks out to the given branch */
-    private static void checkoutBranch (String branch) {
+    private  void checkoutBranch (String branch) {
+        /* Failure cases */
+        if (!this.branches.existsBranch(branch)) {
+            System.out.println("No such branch exists");
+        }
+        if (Objects.equals(this.branches.getCurrentBranch(), branch)) {
+            System.out.println("No need to checkout the current branch");
+            return;
+        }
+        /* Reading the commit at the head of the given branch */
+        Commit end_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.branches.endCommit(branch)), Commit.class);
+        /* Gets all the files tracked by this commit */
+        Set<String> tracked_files = end_commit.getFileNames();
 
     }
 

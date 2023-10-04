@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.Set;
 import java.util.TreeMap;
 import java.io.File;
 
@@ -110,6 +111,11 @@ public class Commit implements Serializable {
     /** removes a tracked blob */
     public void removeBlob (String key) {
         this.referenced_blobs.remove(key);
+    }
+
+    /** Returns the filenames tracked by this commit */
+    public Set<String> getFileNames () {
+        return this.referenced_blobs.keySet();
     }
 }
 

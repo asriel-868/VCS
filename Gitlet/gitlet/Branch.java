@@ -10,7 +10,7 @@ import java.util.TreeMap;
  */
 public class Branch implements Serializable {
 
-    /** HashMap which stores all the branches */
+    /** TreeMap which stores all the branches. Key is the branch name and value is the commit hash of its latest commit */
     private TreeMap<String, String> all_branches;
     /** Stores the current branch in the repository */
     private String current_branch;
@@ -42,5 +42,15 @@ public class Branch implements Serializable {
      */
     public Set<String> getAllBranches() {
         return this.all_branches.keySet();
+    }
+
+    /** Returns the commit at the head of the given branch */
+    public String endCommit (String branch) {
+        return this.all_branches.get(branch);
+    }
+
+    /** Checks if a branch with the given name exists */
+    public boolean existsBranch (String branch) {
+        return this.all_branches.containsKey(branch);
     }
 }
