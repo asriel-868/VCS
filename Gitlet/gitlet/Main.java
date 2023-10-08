@@ -144,6 +144,30 @@ public class Main {
                 }
                 break;
             }
+            /* Creates a new branch with given name. Throws an error if a branch with the same name exists. Does not
+               immediately switch to the new branch
+             */
+            case "branch": {
+                if (repo.checkInitialized() && validateCommand(2, args)) {
+                    repo.branch(args[1]);
+                }
+                else {
+                    System.out.println("Incorrect operands");
+                }
+                break;
+            }
+            /* Removes the branch with the given name. Throws a error if the given branch is the current branch or if no such
+               branch exists
+             */
+            case "rm-branch" : {
+                if (repo.checkInitialized() && validateCommand(2, args)) {
+                    repo.rmBranch(args[1]);
+                }
+                else {
+                    System.out.println("Incorrect operands");
+                }
+                break;
+            }
             /* To be executed when a wrong command is entered */
             default: {
                 System.out.println("No command with that name exists.");

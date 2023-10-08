@@ -45,12 +45,17 @@ public class Branch implements Serializable {
     }
 
     /** Returns the commit at the head of the given branch */
-    public String endCommit (String branch) {
+    public String branchHead(String branch) {
         return this.all_branches.get(branch);
     }
 
     /** Checks if a branch with the given name exists */
     public boolean existsBranch (String branch) {
         return this.all_branches.containsKey(branch);
+    }
+
+    /** Removes the given branch from the all_branches list */
+    public void removeBranch (String branch_name) {
+        this.all_branches.remove(branch_name);
     }
 }

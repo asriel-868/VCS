@@ -40,13 +40,13 @@ public class Repository {
     public static final File STAGED_FILES_DIR = Utils.join(STAGING_AREA_DIR, "staged_files");
 
     /** Stores the branches and their current pointer locations */
-    Branch branches;
+    private Branch branches;
 
     /** The head pointer */
-    public String HEAD;
+    private String HEAD;
 
     /** The staging area  */
-    public StagingArea staging_area;
+    private StagingArea staging_area;
 
 
     /** Constructor */
@@ -286,7 +286,7 @@ public class Repository {
         System.out.println();
         /* Gets all the files in staged for removal area and prints them in lexicographic order */
         TreeSet<String> staged_for_removal_filenames = this.staging_area.getRemovalStagedFiles();
-        System.out.println("=== Removed files ===");
+        System.out.println("=== Removed Files ===");
         for (String s : staged_for_removal_filenames) {
             System.out.println(s);
         }
@@ -340,20 +340,90 @@ public class Repository {
 
     /** Function which checks out to the given branch */
     private  void checkoutBranch (String branch) {
+        /* Current commit*/
+        Commit curr_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.HEAD), Commit.class);
         /* Failure cases */
+        /* 1. If there is an untracked file */
+        for (String f : Objects.requireNonNull(Utils.plainFilenamesIn(Repository.CWD))) {
+            if (!curr_commit.isTracking(f)) {
+                System.out.println("There is an untracked file in the way; delete it or add and commit it first.");
+                return;
+            }
+
+        }
+        /* 2. If a branch with the given name does not exist */
         if (!this.branches.existsBranch(branch)) {
             System.out.println("No such branch exists");
+            return;
         }
+        /* 3. If checking out the current branch */
         if (Objects.equals(this.branches.getCurrentBranch(), branch)) {
             System.out.println("No need to checkout the current branch");
             return;
         }
-        /* Reading the commit at the head of the given branch */
-        Commit end_commit = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.branches.endCommit(branch)), Commit.class);
-        /* Gets all the files tracked by this commit */
-        Set<String> tracked_files = end_commit.getFileNames();
+        /* Reading the commit at the head of the given branch and getting the files tracked by it */
+        Commit branch_head = Utils.readObject(Utils.join(Repository.COMMIT_DIR, this.branches.branchHead(branch)), Commit.class);
+        Set <String> branch_head_files = branch_head.getFileNames();
+
+        /* Deleting files not in the head of the branch being checked out */
+        for (String f : Objects.requireNonNull(Utils.plainFilenamesIn(Repository.CWD))) {
+            if (!branch_head_files.contains(f)) {
+                File curr_file = Utils.join(Repository.CWD, f);
+                curr_file.delete();
+            }
+        }
+        /* Getting the files tracked by the branch head and placing them in CWD */
+        for (String s : branch_head_files) {
+            String file_hash = branch_head.trackedFileHash(s);
+            /* The place where contents of the file are stored */
+            File new_file = Utils.join(Repository.BLOBS_DIR, file_hash);
+            /* Writing the file to the CWD */
+            Utils.writeContents(Utils.join(Repository.CWD, s), Utils.readContentsAsString(new_file));
+        }
+
+        /* Setting the checked out branch as current branch, clearing the staging area and updating the HEAD */
+        this.branches.setCurrentBranch(branch);
+        this.staging_area.clearStagingArea();
+        this.HEAD = this.branches.branchHead(branch);
+    }
+
+    /** Function for the branch command */
+    public void branch (String branch_name) {
+        /* Checks if  the current branch is master. If not, throws an error */
+        if (!Objects.equals(this.branches.getCurrentBranch(), "master")){
+            System.out.println("Can only branch from the master branch");
+            return;
+        }
+        /* Checks if a branch with the given name exists */
+        if (this.branches.existsBranch(branch_name)) {
+            System.out.println("A branch with that name already exists.");
+        }
+        /* If not, create a new branch and make it point to the current HEAD. Saves the repo state and returns */
+        else {
+            this.branches.addBranch(branch_name, this.HEAD);
+            this.saveRepoState();
+        }
+    }
+
+    /** Function for the rm-branch command */
+    public void rmBranch (String branch_name) {
+        if (!this.branches.existsBranch(branch_name)) {
+            System.out.println("A branch with that name does not exist.");
+        }
+        else if (Objects.equals(this.branches.getCurrentBranch(), branch_name)) {
+            System.out.println("Cannot remove current branch.");
+        }
+        else {
+            this.branches.removeBranch(branch_name);
+            this.saveRepoState();
+        }
+    }
+
+    /** Function for the reset command */
+    public void reset (String commit_id) {
 
     }
+
 
     /** Saves the state of the repo */
     public void saveRepoState () {
